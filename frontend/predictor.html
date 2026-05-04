@@ -858,7 +858,7 @@
                 }
             }
             
-            handlePrediction() {
+            async handlePrediction() {
                 try {
                     const data = this.collectFormData();
                     
@@ -869,7 +869,7 @@
                     }
                     
                     // Calculate prediction
-                    const result = this.calculatePrediction(data);
+                    const result = await this.calculatePrediction(data);
                     this.displayResult(result);
                     
                 } catch (error) {
