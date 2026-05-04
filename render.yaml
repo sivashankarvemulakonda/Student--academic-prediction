@@ -9,8 +9,9 @@ services:
       - key: PYTHON_VERSION
         value: 3.9.0
 
-  - type: static   # ✅ IMPORTANT CHANGE
+  - type: web
     name: student-predictor-frontend
+    env: static
     plan: free
     buildCommand: "echo 'No build needed'"
     staticPublishPath: frontend
