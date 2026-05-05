@@ -763,102 +763,82 @@
                 return data;
             }
             
-            async calculatePrediction(data) {
-                try {
-                    // Try local API first
-                    const response = await fetch('http://localhost:5000/predict', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(data)
-                    });
-                    
-                    if (!response.ok) {
-                        throw new Error('API request failed');
-                    }
-                    
-                    const result = await response.json();
-                    return result;
-                } catch (error) {
-                    // Fallback to local calculation if API fails
-                    console.log('API failed, using local calculation');
-                    
-                    // Calculate derived features
-                    const educationHours = 
-                        data.youtube_learning + data.coursera + data.udemy + 
-                        data.google_classroom + data.khan_academy + data.byjus;
-                    
-                    const gamingHours = data.game_hours + data.educational_games;
-                    
-                    const socialMediaHours = 
-                        data.instagram + data.snapchat + data.whatsapp + 
-                        data.youtube_social + data.telegram + data.twitter + data.facebook;
-                    
-                    const dailyUsageHours = educationHours + gamingHours + socialMediaHours;
-                    const socialInteractions = data.social_interactions;
-                    
-                    // Calculate score (matching notebook logic)
-                    const score = (
-                        educationHours * 0.6
-                        - gamingHours * 0.2
-                        - socialMediaHours * 0.2
-                        - dailyUsageHours * 0.1
-                        + socialInteractions * 0.1
-                    );
-                    
-                    // Determine prediction
-                    let prediction, confidence;
-                    if (score >= 1.5) {
-                        prediction = 'High';
-                        confidence = Math.min(0.95, 0.7 + (score - 1.5) * 0.1);
-                    } else if (score >= 0.5) {
-                        prediction = 'Medium';
-                        confidence = 0.6 + (score - 0.5) * 0.2;
-                    } else {
-                        prediction = 'Low';
-                        confidence = Math.max(0.5, 0.8 - Math.abs(score) * 0.1);
-                    }
-                    
-                    // Generate probabilities
-                    let probabilities;
-                    if (prediction === 'High') {
-                        probabilities = {
-                            'High': confidence,
-                            'Medium': (1 - confidence) * 0.6,
-                            'Low': (1 - confidence) * 0.4
-                        };
-                    } else if (prediction === 'Medium') {
-                        probabilities = {
-                            'High': (1 - confidence) * 0.3,
-                            'Medium': confidence,
-                            'Low': (1 - confidence) * 0.7
-                        };
-                    } else {
-                        probabilities = {
-                            'High': (1 - confidence) * 0.2,
-                            'Medium': (1 - confidence) * 0.3,
-                            'Low': confidence
-                        };
-                    }
-                    
-                    return {
-                        prediction,
-                        confidence,
-                        probabilities,
-                        score,
-                        features: {
-                            educationHours,
-                            gamingHours,
-                            socialMediaHours,
-                            dailyUsageHours,
-                            socialInteractions
-                        }
+            calculatePrediction(data) {
+                // Fast local calculation only - no API call
+                // Calculate derived features
+                const educationHours = 
+                    data.youtube_learning + data.coursera + data.udemy + 
+                    data.google_classroom + data.khan_academy + data.byjus;
+                
+                const gamingHours = data.game_hours + data.educational_games;
+                
+                const socialMediaHours = 
+                    data.instagram + data.snapchat + data.whatsapp + 
+                    data.youtube_social + data.telegram + data.twitter + data.facebook;
+                
+                const dailyUsageHours = educationHours + gamingHours + socialMediaHours;
+                const socialInteractions = data.social_interactions;
+                
+                // Calculate score (matching notebook logic)
+                const score = (
+                    educationHours * 0.6
+                    - gamingHours * 0.2
+                    - socialMediaHours * 0.2
+                    - dailyUsageHours * 0.1
+                    + socialInteractions * 0.1
+                );
+                
+                // Determine prediction
+                let prediction, confidence;
+                if (score >= 1.5) {
+                    prediction = 'High';
+                    confidence = Math.min(0.95, 0.7 + (score - 1.5) * 0.1);
+                } else if (score >= 0.5) {
+                    prediction = 'Medium';
+                    confidence = 0.6 + (score - 0.5) * 0.2;
+                } else {
+                    prediction = 'Low';
+                    confidence = Math.max(0.5, 0.8 - Math.abs(score) * 0.1);
+                }
+                
+                // Generate probabilities
+                let probabilities;
+                if (prediction === 'High') {
+                    probabilities = {
+                        'High': confidence,
+                        'Medium': (1 - confidence) * 0.6,
+                        'Low': (1 - confidence) * 0.4
+                    };
+                } else if (prediction === 'Medium') {
+                    probabilities = {
+                        'High': (1 - confidence) * 0.3,
+                        'Medium': confidence,
+                        'Low': (1 - confidence) * 0.7
+                    };
+                } else {
+                    probabilities = {
+                        'High': (1 - confidence) * 0.2,
+                        'Medium': (1 - confidence) * 0.3,
+                        'Low': confidence
                     };
                 }
+                
+                return {
+                    prediction,
+                    confidence,
+                    probabilities,
+                    score,
+                    features: {
+                        educationHours,
+                        gamingHours,
+                        socialMediaHours,
+                        dailyUsageHours,
+                        socialInteractions
+                    }
+                };
             }
             
-            async handlePrediction() {
+            handlePrediction() {
                 try {
                     const data = this.collectFormData();
                     
@@ -868,8 +848,8 @@
                         return;
                     }
                     
-                    // Calculate prediction
-                    const result = await this.calculatePrediction(data);
+                    // Calculate prediction (instant local calculation)
+                    const result = this.calculatePrediction(data);
                     this.displayResult(result);
                     
                 } catch (error) {
