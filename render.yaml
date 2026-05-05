@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: student-predictor-api
+    env: python
+    plan: free
+    buildCommand: "pip install -r backend/requirements.txt"
+    startCommand: "gunicorn backend.app:app"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.0
+
+  - type: web
+    name: student-predictor-frontend
+    env: static
+    plan: free
+    buildCommand: "echo 'No build needed'"
+    staticPublishPath: frontend
